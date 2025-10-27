@@ -24,6 +24,16 @@ FRAMERATE=30
 FORMAT="mjpeg"
 
 echo "🎥 Starting video recording and frame extraction process..."
+
+# Configure camera settings to disable auto white balance
+echo "⚙️  Configuring camera settings..."
+v4l2-ctl -d $DEVICE -c white_balance_automatic=0 2>/dev/null
+if [ $? -eq 0 ]; then
+    echo "✅ Auto white balance disabled"
+else
+    echo "⚠️  Warning: Could not disable auto white balance (camera may not support this control)"
+fi
+
 echo "📹 Recording 5-second 1080p video..."
 
 # Record video using ffmpeg
