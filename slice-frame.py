@@ -2,7 +2,7 @@
 """
 Script: slice-frame.py
 Description: Extract the last frame from a video file and save it as an image
-Usage: python slice-frame.py --input video.mp4 --output frame.jpg
+Usage: python3 slice-frame.py --input video.mp4 --output frame.jpg --format jpg
 """
 
 import cv2
@@ -12,13 +12,14 @@ import sys
 from pathlib import Path
 
 
-def extract_last_frame(video_path: str, output_path: str = None) -> str:
+def extract_last_frame(video_path: str, output_path: str = None, format: str = "jpg") -> str:
     """
     Extract the last frame from a video file
     
     Args:
         video_path: Path to the input video file
         output_path: Path to save the extracted frame (optional)
+        format: Output image format ('jpg' or 'png', default: 'jpg')
     
     Returns:
         Path to the saved frame image
@@ -28,6 +29,15 @@ def extract_last_frame(video_path: str, output_path: str = None) -> str:
         FileNotFoundError: If input video file doesn't exist
     """
     
+    # Validate format
+    format = format.lower()
+    if format not in ['jpg', 'jpeg', 'png']:
+        raise ValueError(f"Unsupported format: {format}. Supported formats: jpg, jpeg, png")
+    
+    # Normalize jpeg to jpg for consistency
+    if format == 'jpeg':
+        format = 'jpg'
+    
     # Check if input file exists
     if not Path(video_path).exists():
         raise FileNotFoundError(f"Video file not found: {video_path}")
@@ -35,7 +45,7 @@ def extract_last_frame(video_path: str, output_path: str = None) -> str:
     # Generate output path if not provided
     if output_path is None:
         video_file = Path(video_path)
-        output_path = video_file.parent / f"{video_file.stem}_lastframe.jpg"
+        output_path = video_file.parent / f"{video_file.stem}_lastframe.{format}"
     
     print(f"📹 Processing video: {video_path}")
     
@@ -106,9 +116,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python slice-frame.py --input video.mp4
-  python slice-frame.py --input video.mp4 --output frame.jpg
-  python slice-frame.py -i /path/to/video.mp4 -o /path/to/frame.png
+  python3 slice-frame.py --input video.mp4
+  python3 slice-frame.py --input video.mp4 --format png
+  python3 slice-frame.py --input video.mp4 --output frame.jpg --format jpg
+  python3 slice-frame.py -i /path/to/video.mp4 -o /path/to/frame.png -f png
         """
     )
     
@@ -124,6 +135,13 @@ Examples:
     )
     
     parser.add_argument(
+        "--format", "-f",
+        default="jpg",
+        choices=["jpg", "jpeg", "png"],
+        help="Output image format (default: jpg)"
+    )
+    
+    parser.add_argument(
         "--verbose", "-v",
         action="store_true",
         help="Enable verbose output"
@@ -133,7 +151,7 @@ Examples:
     
     try:
         # Extract the last frame
-        output_path = extract_last_frame(args.input, args.output)
+        output_path = extract_last_frame(args.input, args.output, args.format)
         
         if args.verbose:
             print(f"\n🎉 Frame extraction completed successfully!")

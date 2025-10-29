@@ -3,7 +3,7 @@
 # Script: record-and-slice.sh
 # Description: Records a 5-second high-resolution video and extracts the last frame
 # Output: Video saved to ~/pest-monitoring/PEST-VIDEO-<DATE>.mp4
-#         Last frame saved to ~/pest-monitoring/PEST-FRAME-<DATE>.jpg
+#         Last frame saved to ~/pest-monitoring/PEST-FRAME-<DATE>.png
 # =========================================================
 
 # Create output folder if not exists
@@ -13,15 +13,24 @@ mkdir -p "$OUTPUT_DIR"
 # Get timestamp for filename
 TIMESTAMP=$(date +"%d.%m.%Y-%I.%M%p")
 VIDEO_FILE="$OUTPUT_DIR/PEST-VIDEO-$TIMESTAMP.mp4"
-FRAME_FILE="$OUTPUT_DIR/PEST-FRAME-$TIMESTAMP.jpg"
+FRAME_FILE="$OUTPUT_DIR/PEST-FRAME-$TIMESTAMP.png"
 
 # Camera device
 DEVICE=/dev/video0
 
 # Resolution and format
-RESOLUTION="1920x1080"
-FRAMERATE=30
+# RESOLUTION="1920x1080"
+# FRAMERATE=30
+
+RESOLUTION="2048x1536"
+FRAMERATE=10
+
+# RESOLUTION="1920x1080"
+# FRAMERATE=5
+
 FORMAT="mjpeg"
+# FORMAT="yuyv422"
+
 
 echo "🎥 Starting video recording and frame extraction process..."
 
@@ -34,10 +43,10 @@ else
     echo "⚠️  Warning: Could not disable auto white balance (camera may not support this control)"
 fi
 
-echo "📹 Recording 5-second 1080p video..."
+echo "📹 Recording 10-second $RESOLUTION video..."
 
 # Record video using ffmpeg
-ffmpeg -f v4l2 -input_format $FORMAT -video_size $RESOLUTION -framerate $FRAMERATE -t 5 -i $DEVICE "$VIDEO_FILE" -y
+ffmpeg -f v4l2 -input_format $FORMAT -video_size $RESOLUTION -framerate $FRAMERATE -t 10 -i $DEVICE "$VIDEO_FILE" -y
 
 # Check if video recording was successful
 if [ $? -eq 0 ] && [ -f "$VIDEO_FILE" ]; then
@@ -46,7 +55,7 @@ if [ $? -eq 0 ] && [ -f "$VIDEO_FILE" ]; then
     echo "🖼️  Extracting last frame from video using Python script..."
     
     # Use the Python slice-frame.py script to extract the last frame
-    python3 "$OUTPUT_DIR/slice-frame.py" --input "$VIDEO_FILE" --output "$FRAME_FILE"
+    python3 "$OUTPUT_DIR/slice-frame.py" --input "$VIDEO_FILE" --output "$FRAME_FILE" --format png
     PYTHON_EXIT_CODE=$?
     
     # Check if frame extraction was successful
